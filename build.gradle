@@ -10,10 +10,40 @@ repositories {
 }
 
 dependencies {
+    // JMH
+    implementation 'org.openjdk.jmh:jmh-core:1.37'
+    annotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess:1.37'
+
+    // 압축 벤치마크용
+    implementation 'commons-io:commons-io:2.18.0'
+
+    // 로깅
+    implementation 'org.slf4j:slf4j-simple:2.0.16'
+
+    // 테스트
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 
 test {
     useJUnitPlatform()
+}
+
+// JMH 실행용 JAR 생성
+tasks.register('jmhJar', Jar) {
+    archiveBaseName = 'benchmarks'
+    archiveClassifier = 'jmh'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    manifest {
+        attributes 'Main-Class': 'org.openjdk.jmh.Main'
+    }
+
+    from {
+        configurations.runtimeClasspath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+
+    from sourceSets.main.output
 }
